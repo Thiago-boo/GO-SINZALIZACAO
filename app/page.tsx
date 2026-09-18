@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 
 const WHATSAPP_NUMBER = "5562996210885";
 
@@ -57,6 +57,39 @@ function BusinessInfo() {
 export default function Home() {
   const [formValues, setFormValues] = useState<FormValues>(initialForm);
   const [errors, setErrors] = useState<Partial<FormValues>>({});
+  const heroVideoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = heroVideoRef.current;
+    if (!video) return;
+
+    const startHeroVideo = () => {
+      video.muted = true;
+      video.defaultMuted = true;
+      video.playsInline = true;
+      void video.play().catch(() => undefined);
+    };
+    const restartHeroVideo = () => {
+      video.currentTime = 0;
+      startHeroVideo();
+    };
+    const resumeWhenVisible = () => {
+      if (!document.hidden) startHeroVideo();
+    };
+
+    startHeroVideo();
+    video.addEventListener("canplay", startHeroVideo);
+    video.addEventListener("loadeddata", startHeroVideo);
+    video.addEventListener("ended", restartHeroVideo);
+    document.addEventListener("visibilitychange", resumeWhenVisible);
+
+    return () => {
+      video.removeEventListener("canplay", startHeroVideo);
+      video.removeEventListener("loadeddata", startHeroVideo);
+      video.removeEventListener("ended", restartHeroVideo);
+      document.removeEventListener("visibilitychange", resumeWhenVisible);
+    };
+  }, []);
 
   function updateField(field: keyof FormValues, value: string) {
     setFormValues((current) => ({ ...current, [field]: value }));
@@ -86,7 +119,7 @@ export default function Home() {
 
     <section id="inicio" className="hero" aria-labelledby="hero-title">
       <div className="hero-copy"><p className="eyebrow"><span /> Sinalização que orienta e protege</p><h1 id="hero-title">Segurança para<br /><em>cada caminho.</em></h1><p className="hero-text">Projetos e soluções em sinalização para cidades, obras e espaços que precisam funcionar melhor.</p><div className="hero-actions"><a className="button button-orange" href="#contato">Fale com nossa equipe <span aria-hidden="true">→</span></a><a className="text-link light" href="#solucoes">Conheça as soluções <span aria-hidden="true">↓</span></a></div></div>
-      <div className="hero-art" aria-hidden="true"><video autoPlay muted loop playsInline poster="/images/rodovia.jpg"><source src="/videos/hero-go-sinalizacao.mp4" type="video/mp4" /></video><div className="hero-photo-shade" /><div className="art-caption"><Image src="/images/go-sinalizacao-transparent.png" alt="" width={116} height={77} /><p>Precisão técnica<br />em cada entrega.</p></div></div>
+      <div className="hero-art" aria-hidden="true"><video ref={heroVideoRef} autoPlay muted loop playsInline preload="auto" disablePictureInPicture poster="/images/rodovia.jpg"><source src="/videos/hero-go-sinalizacao.mp4" type="video/mp4" /></video><div className="hero-photo-shade" /><div className="art-caption"><Image src="/images/go-sinalizacao-transparent.png" alt="" width={116} height={77} /><p>Precisão técnica<br />em cada entrega.</p></div></div>
     </section>
 
     <section id="conteudo" className="intro journey-section section-pad" aria-labelledby="conteudo-title"><span className="route-marker" aria-hidden="true">KM 01</span><p className="section-number">KM 01 — O QUE FAZEMOS</p><div className="intro-layout"><h2 id="conteudo-title">Mais clareza.<br />Mais <em>segurança.</em></h2><div><p>Transformamos necessidades de circulação e orientação em sinalização bem executada — com diálogo técnico, planejamento e compromisso com cada detalhe.</p><a className="text-link dark" href="#empresa">Conheça a GO Sinalização <span aria-hidden="true">→</span></a></div></div></section>
